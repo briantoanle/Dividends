@@ -1,9 +1,11 @@
+import dateutil.utils
 import streamlit as st
 import yfinance as yf
 import datetime as dt
 import pandas as pd
 s = "2008-06-26"
-e = "2015-04-30"
+e = str(dateutil.utils.today())[0:10]
+print(e)
 t = "AAPL"
 
 
