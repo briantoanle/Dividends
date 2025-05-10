@@ -2,16 +2,16 @@ import yfinance as yf
 import streamlit as st
 import pandas as pd
 
-s = "2008-06-26"
+s = "2005-06-26"
 e = "2025-04-30"
-t = "AAPL"
+t = "MO"
 
 stock = yf.Ticker(t)
 data = yf.download(t, start=s, end=e)
 
 def calculate_with_reinvesting(start_date, end_date, stock):
     # stock.dividends
-    # print(stock.dividends)
+    print(stock.dividends)
     # print()
 
     start_series = stock.dividends.index[stock.dividends.index >= start_date][0]
@@ -39,11 +39,3 @@ def calculate_with_reinvesting(start_date, end_date, stock):
 
 
 calculate_with_reinvesting(s, e, stock)
-
-
-header = st.container()
-with header:
-    st.title = ("Welcome to Toan Le longrun data")
-
-    st.sidebar.header("Enter your stock symbol:")
-    ticker = st.sidebar.text_input("Stock symbol", t)
