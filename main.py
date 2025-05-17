@@ -25,9 +25,7 @@ def calculate_with_reinvesting(start_date, end_date, stock):
     start_amount = 10000
     starting_share = start_amount / price_data[0]
     print("Starting with $10000, I have", starting_share, "shares")
-    # print(price_data)
-    # for date, payout in arr.items:
-    # print(date,payout)
+
     for date, payout in arr.items():
         current_stock_price_at_closing = price_data[date]
         starting_share += (starting_share * payout) / current_stock_price_at_closing

@@ -1,14 +1,9 @@
 import dateutil.utils
 import streamlit as st
 import yfinance as yf
-import datetime as dt
+from datetime import date,datetime,timezone
+
 import pandas as pd
-s = "2008-06-26"
-e = str(dateutil.utils.today())[0:10]
-print(e)
-t = "AAPL"
-
-
 
 def calculate_with_reinvesting(start_amount, start_date, end_date, stock):
     # stock.dividends
@@ -45,10 +40,12 @@ def calculate_with_reinvesting(start_amount, start_date, end_date, stock):
     return current_value,d
 
 
-def displayApp(ticker,start_date,end_date,starting_amount):
-    st.header("Welcome to Toan Le longrun data")
-    st.write(f"""Starting with \${starting_amount} of stock:""", ticker)
-    stock = yf.Ticker(ticker)
+def displayApp(ticker,start_date,end_date,starting_amount,stock):
+    st.write(f"""Starting with ${starting_amount} of stock:""", ticker)
+    st.subheader(stock.info['longName'])
+    st.badge(stock.info['sectorDisp'])
+    st.caption(stock.info['longBusinessSummary'])
+
     #data = yf.download(ticker, start=s, end=e)
     current_value,d = calculate_with_reinvesting(starting_amount, start_date,end_date,stock)
     st.write("I have", current_value,"$")
@@ -56,16 +53,39 @@ def displayApp(ticker,start_date,end_date,starting_amount):
     df = pd.DataFrame(d)
     st.line_chart(df, x="Date", y="Amount")
 
+def get_ipo_date(ticker):
+    try:
+        info = yf.Ticker(ticker).info
+        timestamp = info.get("firstTradeDateMilliseconds", None)
+        if timestamp:
+            return datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc).date()
+    except:
+        pass
+    return date(2010, 1, 1)
+
 def main():
-    st.title = ("")
-    t = "AAPL"
-    st.sidebar.header("Enter your stock symbol:")
-    ticker = st.sidebar.text_input("Stock symbol", t)
-    starting_amount = st.sidebar.number_input("Starting amount", value=10000)
-    start_date = str(st.sidebar.date_input("Start date", s))
-    end_date = str(st.sidebar.date_input("End date", e))
-    print(start_date,"***")
-    displayApp(ticker,start_date,end_date,starting_amount)
+    st.title("Dividend Stock Visualizer")
+
+    # Load company list
+    companies = pd.read_csv("companies.csv")  # must have 'Symbol' and 'Name'
+    companies['display'] = companies['Symbol'] + " - " + companies['Name']
+
+    # Sidebar selection
+    st.sidebar.header("Select a stock symbol:")
+    selected = st.sidebar.selectbox("Search and select", companies['display'], key='stock_symbol_dropdown')
+    ticker = selected.split(" - ")[0]
+
+    # Get IPO date from yfinance
+    ipo_date = get_ipo_date(ticker)
+    today = date.today()
+    stock = yf.Ticker(ticker)
+    # Sidebar inputs
+    starting_amount = st.sidebar.number_input("Starting amount", value=10000, key='starting_amount_input')
+    start_date = str(st.sidebar.date_input("Start date (IPO default)", ipo_date, key='start_date_input',min_value = ipo_date,max_value = "today"))
+    end_date = str(st.sidebar.date_input("End date", today, key='end_date_input'))
 
 
-main()
+    displayApp(ticker, start_date, end_date, starting_amount,stock)
+
+if __name__ == "__main__":
+    main()
